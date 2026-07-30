@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const adminID int64 = 123456789 // your Telegram user ID
+const adminID int64 = 1006461736 // Telegram user ID
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI("YOUR_BOT_TOKEN")
@@ -29,7 +29,7 @@ func main() {
 		if update.Message.From.ID != adminID {
 			continue
 		}
-
+		fmt.Println(update.Message.Text)
 		switch update.Message.Text {
 
 		case "/restart_node":
@@ -52,18 +52,29 @@ func main() {
 			))
 
 		case "/status":
+			fmt.Println("Checking node status...")
+
 			cmd := exec.Command(
 				"bash",
 				"-c",
 				"pgrep -af WerewolfNode",
 			)
 
-			out, _ := cmd.Output()
+			out, err := cmd.Output()
+
+			var status string
+
+			if err != nil || len(out) == 0 {
+				status = "🔴 WerewolfNode is not running."
+			} else {
+				status = "🟢 WerewolfNode is running:\n" + string(out)
+			}
 
 			bot.Send(tgbotapi.NewMessage(
 				update.Message.Chat.ID,
-				string(out),
+				status,
 			))
+
 		}
 	}
 }
